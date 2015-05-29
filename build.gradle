@@ -1,0 +1,59 @@
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+compileJava {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
+
+version = '1.0'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.4'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.lwes:lwes-java:1.4.0'
+    compile 'org.java-websocket:Java-WebSocket:1.3.0'
+    compile 'com.beust:jcommander:1.35'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.1'
+    compile 'com.github.krukow:clj-ds:0.0.4'
+    compile 'org.mockito:mockito-all:1.9.5'
+    compile 'org.testng:testng:6.8.21'
+
+}
+
+test {
+    useTestNG()
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: ${descriptor}")
+    }
+}
+//test { useTestNG() }
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
+    }
+}
+
+shadowJar {
+    baseName = 'lwes-websocket-server'
+    destinationDir = file("$buildDir/lib")
+    manifest {
+        attributes (
+                'Implementation-Title': 'LWES WebSocket Server',
+                'Implementation-Version': version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                'Main-Class': 'com.github.laboo.lwes.websocketserver.Main'
+        )
+    }
+}
