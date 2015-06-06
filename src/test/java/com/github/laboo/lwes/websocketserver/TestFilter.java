@@ -19,14 +19,14 @@ public class TestFilter {
     static Filter f3 = new Filter("x", "y", "z");
     static String filtersStr = "["
             +     "{"
-            +       "\"eventName\":\"food\","
+            +       "\"name\":\"food\","
             +       "\"attribute\":\"taste\","
-            +       "\"regex\":\"hot\""
+            +       "\"value\":\"hot\""
             +     "},"
             +     "{"
-            +       "\"eventName\":\"drink\","
+            +       "\"name\":\"drink\","
             +       "\"attribute\":\"taste\","
-            +       "\"regex\":\"dry\""
+            +       "\"value\":\"dry\""
             +     "}"
             +   "]";
     static String badfiltersStr1 = "["
@@ -70,9 +70,8 @@ public class TestFilter {
         Filter bad = new Filter("a", "b", "*\\.*");
     }
 
-    // Can't do this until Jackson 2.6
-    // @Test(expectedExceptions = SomeJsonExceptionForRequiredClass.class)
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = { com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.class },
+           expectedExceptionsMessageRegExp = "(?s).*Unrecognized field \"regex\".*(?s)")
     public void testBadMapping1() throws Exception {
         Filter[] filters = mapper.readValue(badfiltersStr1, Filter[].class);
         for (Filter filter : filters) {
