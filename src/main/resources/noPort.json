@@ -1,0 +1,7 @@
+{
+  "ip" : "1.2.3.4",
+  "batchSize" : 1,
+  "maxSecs" : 60,
+  "requests" : { },
+  "filters" : [ ]
+}

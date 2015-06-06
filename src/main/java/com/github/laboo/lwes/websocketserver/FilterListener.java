@@ -65,16 +65,16 @@ public class FilterListener implements EventHandler{
             top: for (ClientConfig config : configSet) {
                 Map<String, Set<ClientConfig>> attrMap = new HashMap<>();
                 Map<ClientConfig, Event> outMap = new HashMap<>();
-                Filter[] filters = config.getFilters();
+                List<Filter> filters = config.getFilters();
                 for (Filter filter : filters) {
                     if (!filter.matches(event)) {
                         continue top; // One filter miss rejects the event for this config
                     }
                 }
 
-                String[] attrs = config.getRequests().get(name);
+                List<String> attrs = config.getRequests().get(name);
 
-                if (attrs == null || attrs.length == 0) {
+                if (attrs == null || attrs.size() == 0) {
                     allAttributes = true; // Not specifying any attrs at all means you want them all
                     // The empty string represents 'all attrs'
                     if (attrMap.get("") == null) {

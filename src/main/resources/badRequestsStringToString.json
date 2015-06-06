@@ -1,0 +1,6 @@
+{
+  "ip" : "1.2.3.4",
+  "port" : 1111,
+  "requests" : { "bad" : "should be array" },
+  "filters" : [ ]
+}

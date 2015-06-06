@@ -64,7 +64,7 @@ public class Main extends WebSocketServer {
         ClientConfig config = null;
         System.out.println("got message");
         try {
-            config = mapper.readValue(message, ClientConfig.class);
+            config = ClientConfig.build(message);
         } catch (Exception e) {
             // TODO can we do better here?
             conn.send("bad config: " + e);

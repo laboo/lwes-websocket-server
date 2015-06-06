@@ -1,0 +1,27 @@
+
+{
+  "batchSize": 10,
+  "ip": "1.2.3.4",
+  "port": 1111,
+  "requests": {
+    "food": [
+      "burger",
+      "fries"
+    ],
+    "drink": [
+      "Coke"
+    ]
+  },
+  "filters": [
+    {
+      "name": "food",
+      "attribute": "taste",
+      "value": "hot"
+    },
+    {
+      "name": "drink",
+      "attribute": "taste",
+      "value": "dry"
+    }
+  ]
+}

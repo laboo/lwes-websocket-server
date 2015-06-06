@@ -63,7 +63,7 @@ public enum ConfigMap {
                     outConfig = cc;
                     continue;
                 }
-                for (Map.Entry<String,String[]> entry2 : clientConfig.getRequests().entrySet()) {
+                for (Map.Entry<String,List<String>> entry2 : clientConfig.getRequests().entrySet()) {
                     String requestKey = clientConfig.getChannel() + entry2.getKey();
                     if (key.equals(requestKey)) {
                         newSet.add(clientConfig);

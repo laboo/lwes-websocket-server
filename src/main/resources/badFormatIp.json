@@ -1,0 +1,8 @@
+{
+  "port" : 1234,
+  "ip" : "1.2.34",
+  "batchSize" : 1,
+  "maxSecs" : 60,
+  "requests" : { },
+  "filters" : [ ]
+}

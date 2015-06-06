@@ -25,6 +25,7 @@ dependencies {
     compile 'com.github.krukow:clj-ds:0.0.4'
     compile 'org.mockito:mockito-all:1.9.5'
     compile 'org.testng:testng:6.8.21'
+    compile 'com.google.guava:guava:18.0'
 
 }
 

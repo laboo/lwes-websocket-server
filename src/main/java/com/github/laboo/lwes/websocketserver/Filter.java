@@ -20,7 +20,11 @@ public class Filter {
 
     public Filter() {}
 
-    public Filter(String eventType, String attribute, String regex) {
+    public Filter(String name, String attribute, String value) {
+        this.name = name;
+        this.attribute = attribute;
+        this.value = value;
+        wellFormedCheck();
         this.setName(name);
         this.setAttribute(attribute);
         this.setValue(value);
@@ -87,18 +91,18 @@ public class Filter {
 
     @Override
     public String toString() {
-        return "{eventName:" + name + ",attribute:" + attribute + ",value:" + value + "}";
+        return "{name:" + name + ",attribute:" + attribute + ",value:" + value + "}";
     }
 
     public void wellFormedCheck() {
         if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("name is required in Filter: " + this);
+            throw new IllegalArgumentException("name is required in filter: " + this);
         }
         if (attribute == null || attribute.isEmpty()) {
-            throw new IllegalArgumentException("attribute is required in Filter: " + this);
+            throw new IllegalArgumentException("attribute is required in filter: " + this);
         }
         if (value == null || value.isEmpty()) {
-            throw new IllegalArgumentException("value is required in Filter: " + this);
+            throw new IllegalArgumentException("value is required in filter: " + this);
         }
     }
 }
