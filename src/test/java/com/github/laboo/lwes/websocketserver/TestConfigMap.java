@@ -16,36 +16,15 @@ import java.util.Set;
 public class TestConfigMap {
 
     private static ObjectMapper mapper = new ObjectMapper();
-/*
     @Test
     public static void testSimple() throws Exception {
-        ClientConfig cc = new ClientConfig();
-        Filter[] filters = new Filter[1];
-        filters[0] = new Filter("a", "b", "c");
-        cc.setFilters(filters);
-        Map<String,String[]> requests = new HashMap<>();
-        String[] array = {"y", "z"};
-        requests.put("x", array);
-        cc.setRequests(requests);
-        cc.setIp("1.1.1.1");
-        cc.setPort(1111);
-        cc.setBatchSize(20);
-        assertTrue(ConfigMap.sizeOfRequestMap() == 0);
-        ConfigMap.addClientConfig(cc);
-        assertTrue(ConfigMap.sizeOfRequestMap() == 1);
-        ConfigMap.print();
-        org.lwes.Event event = new org.lwes.ArrayEvent();
-        event.setEventName("x");
-        event.setString("y", "a");
-        event.setString("z", "b");
-        int matches = ConfigMap.handleEvent(event, cc.getChannel());
-        assertTrue(matches == 1, "matches mismatch");
-        System.out.println("matches=" + matches);
-        ConfigMap.removeClientConfig(cc);
-        assertTrue(ConfigMap.sizeOfRequestMap() == 0);
-        assertEquals(cc.events.size(), 1);
-        Event pulledEvent = cc.events.take();
-        System.out.println("Event:" + pulledEvent);
+        ClientConfig cc0 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,'filters':[{'name':'a','attribute':'b','value':'c'}],'requests':{'x':['y']}}");
+        ClientConfig cc1 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,'filters':[],'requests':{'x':['y']}}");
+        ClientConfig cc2 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,'filters':[],'requests':{'x':['y']}}");
+        assertNotSame(cc1, cc2);
+        ConfigMap.addClientConfig(cc0);
+        ConfigMap.addClientConfig(cc1);
+        ClientConfig back = ConfigMap.addClientConfig(cc2);
+        assertSame(cc1, back);
     }
-    */
 }

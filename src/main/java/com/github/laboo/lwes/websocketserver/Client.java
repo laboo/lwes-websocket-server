@@ -2,6 +2,7 @@ package com.github.laboo.lwes.websocketserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.java_websocket.WebSocket;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 //import org.lwes.Event;
 
 
@@ -59,13 +60,15 @@ public class Client {
                         }
                         results.add(e);
                     }
-                    String data = mapper.writeValueAsString(results);
+                    String data = mapper.writeValueAsString(new Response(results));
                     results.clear();
                     conn.send(data);
                 } catch (Exception e) {
                     // All exceptions are fatal
-                    System.out.println("client thread closing conn: " + e);
-                    this.conn.close();
+                    if (!(e instanceof WebsocketNotConnectedException)) {
+                        System.out.println("client thread closing conn: " + e);
+                        this.conn.close();
+                    }
                     return;
                 }
             }

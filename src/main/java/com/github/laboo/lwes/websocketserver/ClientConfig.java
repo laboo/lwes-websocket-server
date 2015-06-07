@@ -1,18 +1,12 @@
 package com.github.laboo.lwes.websocketserver;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.net.InetAddresses;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+
 
 /**
  * Created by mlibucha on 5/9/15.
@@ -120,11 +114,18 @@ public class ClientConfig {
         ClientConfig that = (ClientConfig) o;
         if (port != that.port) return false;
         if (!ip.equals(that.ip)) return false;
-        if (filters.hashCode() != that.filters.hashCode()) return false; // XXX
+        if (filters.size() != that.filters.size()) return false;
+        for (int i = 0; i < filters.size(); i++) {
+            if (!filters.get(i).equals(that.filters.get(i))) return false;
+        }
         if (requests.size() != that.requests.size()) return false;
-        for (Map.Entry<String, List<String>> entry : that.requests.entrySet()) {
-            if (requests.get(entry.getKey()) == null ) return false;
-            if (!(requests.get(entry.getKey()).hashCode() == entry.getValue().hashCode())) return false;
+        for (Map.Entry<String, List<String>> entry : requests.entrySet()) {
+            if (that.requests.get(entry.getKey()) == null) return false;
+            for (String str : entry.getValue()) {
+                if (!that.requests.get(entry.getKey()).contains(str)) {
+                    return false;
+                }
+            }
         }
         return true;
     }
@@ -133,7 +134,9 @@ public class ClientConfig {
     public int hashCode() {
         int result = ip.hashCode();
         result = 31 * result + port;
-        result = 31 * result + filters.hashCode(); // XXX
+        for (Filter filter : filters) {
+            result = 31 * filter.hashCode();
+        }
         for (Map.Entry<String,List<String>> entry : requests.entrySet()) {
             result = 31 * result + entry.getKey().hashCode();
             for (String str : entry.getValue()) {
@@ -143,25 +146,22 @@ public class ClientConfig {
         return result;
     }
 
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        sb.append("channel: ");
+        sb.append("channel:");
         sb.append(this.getChannel());
-        sb.append(" filters: [");
+        sb.append(" filters:[");
         if (filters != null) {
             for (Filter f : filters) {
-                sb.append("  ");
                 sb.append(f);
             }
-            sb.append("],");
         }
+        sb.append("]");
         sb.append(" requests:");
         if (requests != null) {
             for (Map.Entry<String, List<String>> entry : requests.entrySet()) {
-                sb.append("  ");
                 sb.append(entry.getKey());
                 sb.append("=>[");
                 boolean first = true;
@@ -185,9 +185,7 @@ public class ClientConfig {
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         Map<String,Object> config = mapper.readValue(json, Map.class);
 
-
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config));
-
+        //System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config));
 
         int batchSize = DEFAULT_BATCH_SIZE;
         int maxSecs = DEFAULT_MAX_SECS;
@@ -242,7 +240,6 @@ public class ClientConfig {
             requests = (Map) config.get(REQUESTS_KEY);
         } catch (ClassCastException cce) {
             String msg = REQUESTS_KEY + " must be of type (JSON) object";
-            System.out.println("*" + msg + "*");
             throw new IllegalArgumentException(REQUESTS_KEY + " must be of type (JSON) object");
         }
 
@@ -271,23 +268,16 @@ public class ClientConfig {
 
                 List<Object> olist = (List<Object>) obj;
                 for (Object o: olist) {
-                    System.out.println(o);
                     if (!(o instanceof Map)) {
                         throw new IllegalArgumentException(FILTERS_KEY + " list must contain object types");
                     }
                     Map map = (Map) o;
-                    System.out.println(map.get("name"));
-                    System.out.println(map.get("attribute"));
-                    System.out.println(map.get("value"));
-
                     filters.add(new Filter((String) map.get("name"),
                             (String) map.get("attribute"),
                             (String) map.get("value")));
-                    //filters.add(f);
                 }
             }
         } catch (ClassCastException cce) {
-            System.out.println(cce);
             throw new IllegalArgumentException(FILTERS_KEY + " must be of type object");
         }
 

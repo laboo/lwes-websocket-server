@@ -28,9 +28,15 @@ public enum ConfigMap {
         for (Map.Entry<String, Set<ClientConfig>> entry : requestMap.entrySet()) {
             System.out.print(entry.getKey() + " => [");
             for (ClientConfig cc : entry.getValue()) {
-                System.out.print(cc);
+                try {
+                    System.out.print("\n  ");
+                    System.out.print("(" + cc.clients.size() + ") ");
+                    System.out.print(cc);
+                } catch (Exception e) {
+                    System.out.println("aha!!! " + e);
+                }
             }
-            System.out.println("]");
+            System.out.println("\n]");
         }
         System.out.println("---------------------");
     }
@@ -49,7 +55,6 @@ public enum ConfigMap {
 
     public synchronized static ClientConfig addClientConfig(ClientConfig clientConfig) {
         ClientConfig outConfig = clientConfig;
-        System.out.println("adding cc " + clientConfig.getChannel());
         Map<String,Set<ClientConfig>> newRequestMap = new HashMap<>();
         // Loop thru the existing map and make a copy of it.
         for (Map.Entry<String,Set<ClientConfig>> entry : requestMap.entrySet()) {
@@ -58,7 +63,9 @@ public enum ConfigMap {
             Set<ClientConfig> newSet = new HashSet<ClientConfig>();
             for (ClientConfig cc : oldSet) {
                 newSet.add(cc);
-                // XXX document
+                // If we've already got an "equals" client config, we don't want to replace it
+                // with the new one. We want to leave the old one in place, and later the connection
+                // for the new client config with get added to the old client config.
                 if (cc.equals(clientConfig)) {
                     outConfig = cc;
                     continue;
@@ -85,7 +92,6 @@ public enum ConfigMap {
         }
 
         swapIn(newRequestMap);
-
         return outConfig;
     }
 

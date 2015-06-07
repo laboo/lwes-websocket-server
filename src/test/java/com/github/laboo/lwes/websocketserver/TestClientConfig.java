@@ -14,7 +14,7 @@ import java.io.FileInputStream;
  */
 public class TestClientConfig {
 
-    // Test equals(), hashcode. These tests depend on ClientConfig.build(), thus @Test dependency
+    // Test equals(), hashcode(). These tests depend on ClientConfig.build(), thus @Test dependency
 
     @Test(dependsOnGroups = { "build" })
     public void testEquals() throws Exception {
@@ -22,6 +22,25 @@ public class TestClientConfig {
         ClientConfig cc2 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,'filters':[],'requests':{}}");
         assertEquals(cc1, cc2);
         assertEquals(cc1.hashCode(), cc2.hashCode());
+    }
+
+    @Test(dependsOnGroups = { "build" })
+    public void testEqualsWithFilters() throws Exception {
+        ClientConfig cc1 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,"
+                + "'filters':[{'name':'a','attribute':'b','value':'c'}],'requests':{}}");
+        ClientConfig cc2 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,"
+                + "'filters':[{'name':'a','attribute':'b','value':'c'}],'requests':{}}");
+        assertEquals(cc1, cc2);
+        assertEquals(cc1.hashCode(), cc2.hashCode());
+    }
+
+    @Test(dependsOnGroups = { "build" })
+    public void testNotEqualsWithFilters() throws Exception {
+        ClientConfig cc1 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,"
+                + "'filters':[{'name':'a','attribute':'b','value':'c'}],'requests':{}}");
+        ClientConfig cc2 = ClientConfig.build("{'ip':'1.2.3.4','port':1234,"
+                + "'filters':[{'name':'a','attribute':'b','value':'d'}],'requests':{}}");
+        assertNotEquals(cc1, cc2);
     }
 
     @Test(dependsOnGroups = { "build" })

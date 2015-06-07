@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -66,11 +67,20 @@ public class Main extends WebSocketServer {
         try {
             config = ClientConfig.build(message);
         } catch (Exception e) {
-            // TODO can we do better here?
-            conn.send("bad config: " + e);
+            Response response =
+                    new Response(Response.ERROR_TYPE, e.getMessage() + " in " + message, new ArrayList<Event>());
+            try {
+                String data = mapper.writeValueAsString(response);
+                conn.send(data);
+            } catch (Exception e2) {
+                conn.send("Invalid JSON: \n"
+                        + e.getMessage() + "\n"
+                        + message);
+            }
+            conn.close(1011, "Invalid client request");
             return;
         }
-
+        System.out.println(config);
         Client client = connToClientMap.get(conn);
         client.setBatchSize(config.getBatchSize());
         client.setMaxSecs(config.getMaxSecs());
@@ -78,7 +88,6 @@ public class Main extends WebSocketServer {
         client.setConfig(config);
         config.addClient(client);
         clientToChannelMap.put(client, config.getChannel());
-
         try {
             assignClient(client);
         } catch (UnknownHostException uhe) {
