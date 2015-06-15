@@ -46,7 +46,6 @@ public class Client {
         }
 
         public void run() {
-            System.out.println("client running");
             while (true) {
                 long maxMillis = maxSecs * 1000;
                 long deadline = System.currentTimeMillis() + maxMillis;

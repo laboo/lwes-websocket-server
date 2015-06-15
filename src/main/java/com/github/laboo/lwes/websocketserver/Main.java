@@ -1,6 +1,9 @@
 package com.github.laboo.lwes.websocketserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -10,6 +13,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,25 +31,35 @@ public class Main extends WebSocketServer {
     private static ObjectMapper mapper = new ObjectMapper();
     public Main() {super(new InetSocketAddress(port));}
 
-    public static void main(String[] args) throws UnknownHostException {
-        int count = 0;
+    public static void main(String[] args) throws UnknownHostException, org.apache.commons.cli.ParseException {
+
         Main server = new Main();
         server.start();
-        try {
-            //server.wait();
-            MulticastEventEmitter emitter = new MulticastEventEmitter();
-            emitter.setESFFilePath("/path/to/esf/file");
-            emitter.setMulticastAddress(InetAddress.getByName("224.0.0.69"));
-            emitter.setMulticastPort(9191);
-            emitter.initialize();
 
-            while (true) {
-                org.lwes.Event e = emitter.createEvent("MyEvent", false);
-                e.setString("key", String.valueOf(count++));
-                emitter.emit(e);
-                Thread.sleep(1000);
+        Options options = new Options();
+        options.addOption("e", false, "Emit events for testing purposes");
+        BasicParser parser = new BasicParser();
+        CommandLine cl = parser.parse(options, args);
+
+        int count = 0;
+        MulticastEventEmitter emitter = null;
+        try {
+            if (cl.hasOption("e")) {
+                emitter = new MulticastEventEmitter();
+                emitter.setESFFilePath("/path/to/esf/file");
+                emitter.setMulticastAddress(InetAddress.getByName("224.0.0.69"));
+                emitter.setMulticastPort(9191);
+                emitter.initialize();
             }
 
+            while (true) {
+                if (cl.hasOption("e")) {
+                    org.lwes.Event e = emitter.createEvent("MyEvent", false);
+                    e.setString("key", String.valueOf(count++));
+                    emitter.emit(e);
+                }
+                Thread.sleep(1000);
+            }
         } catch (IOException ioe) {
             System.out.println(ioe);
         } catch (InterruptedException ie) {
@@ -55,7 +69,6 @@ public class Main extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        System.out.println("got connection");
         Client client = new Client(conn);
         connToClientMap.put(conn, client);
     }
@@ -63,7 +76,6 @@ public class Main extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         ClientConfig config = null;
-        System.out.println("got message");
         try {
             config = ClientConfig.build(message);
         } catch (Exception e) {
@@ -80,7 +92,6 @@ public class Main extends WebSocketServer {
             conn.close(1011, "Invalid client request");
             return;
         }
-        System.out.println(config);
         Client client = connToClientMap.get(conn);
         client.setBatchSize(config.getBatchSize());
         client.setMaxSecs(config.getMaxSecs());
@@ -95,6 +106,7 @@ public class Main extends WebSocketServer {
         } catch (Exception e) {
             conn.send("Exception parsing config: " + config);
         }
+        ConfigMap.print();
     }
 
     @Override

@@ -3,12 +3,7 @@ package com.github.laboo.lwes.websocketserver;
 import static org.testng.Assert.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.krukow.clj_lang.PersistentHashSet;
 import org.testng.annotations.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by mlibucha on 5/17/15.
@@ -27,4 +22,17 @@ public class TestConfigMap {
         ClientConfig back = ConfigMap.addClientConfig(cc2);
         assertSame(cc1, back);
     }
+
+    @Test
+    public void testEvent() throws Exception {
+
+        org.lwes.Event event = new org.lwes.MapEvent();
+        event.setEventName("a");
+        event.setString("b", "c");
+        FilterListener fl = new FilterListener("1.2.3.4", 1234);
+        fl.handleEvent(event);
+
+    }
+
+
 }

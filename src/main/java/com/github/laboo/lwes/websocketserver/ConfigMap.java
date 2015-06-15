@@ -36,7 +36,7 @@ public enum ConfigMap {
                     System.out.println("aha!!! " + e);
                 }
             }
-            System.out.println("\n]");
+            System.out.println(" ]");
         }
         System.out.println("---------------------");
     }
@@ -65,7 +65,7 @@ public enum ConfigMap {
                 newSet.add(cc);
                 // If we've already got an "equals" client config, we don't want to replace it
                 // with the new one. We want to leave the old one in place, and later the connection
-                // for the new client config with get added to the old client config.
+                // for the new client config will get added to the old client config.
                 if (cc.equals(clientConfig)) {
                     outConfig = cc;
                     continue;

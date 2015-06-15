@@ -26,7 +26,9 @@ dependencies {
     compile 'org.mockito:mockito-all:1.9.5'
     compile 'org.testng:testng:6.8.21'
     compile 'com.google.guava:guava:18.0'
-
+    compile 'javax.websocket:javax.websocket-api:1.1'
+    compile 'commons-cli:commons-cli:1.2'
+    compile 'org.antlr:stringtemplate:3.2'
 }
 
 test {

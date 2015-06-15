@@ -99,7 +99,6 @@ public class ClientConfig {
 
     public void addClient(Client client) {
         this.clients.add(client);
-        System.out.println("Clients: " + clients.size());
     }
 
     public boolean removeClient(Client client) {

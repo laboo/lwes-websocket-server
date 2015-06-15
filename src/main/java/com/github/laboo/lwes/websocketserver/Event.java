@@ -37,6 +37,38 @@ public class Event {
         attrs.put(attr, value);
     }
 
+    public boolean equals(org.lwes.Event e) {
+        if (!this.name.equals(e.getEventName())) {
+            return false;
+        }
+        int extra = 0;
+
+        // These are "internal" attributes that may be set on an org.lwes.Event
+        if (e.get("enc") != null) {
+            extra++;
+        }
+        if (e.get("ReceiptTime") != null) {
+            extra++;
+        }
+        if (e.get("SenderIP") != null) {
+            extra++;
+        }
+        if (e.get("SenderPort") != null) {
+            extra++;
+        }
+
+        if (attrs.size() + extra != e.getNumEventAttributes()) { // enc
+            return false;
+        }
+        for (String attr : attrs.keySet()) {
+            Object evalue = e.get(attr);
+            if (evalue == null || !evalue.equals(attrs.get(attr))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
         try {
@@ -44,19 +76,6 @@ public class Event {
         } catch (JsonProcessingException jpe) {
             return super.toString();
         }
-        /*
-        StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        sb.append("\n");
-        for (Map.Entry<String,Object> entry : attrs.entrySet()) {
-            sb.append("  ");
-            sb.append(entry.getKey());
-            sb.append(" => ");
-            sb.append(entry.getValue());
-            sb.append("\n");
-        }
-        return sb.toString();
-        */
     }
 
 }

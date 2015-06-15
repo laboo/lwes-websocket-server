@@ -49,22 +49,39 @@ public class FilterListener implements EventHandler{
     }
 
     public void handleEvent(org.lwes.Event event) {
+        handleEvent(event, channel);
+    }
+
+    // Static for simpler testing
+    public static void handleEvent(org.lwes.Event event, String channel) {
 
         if (event != null) {
-            Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap();
+            Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
             String name = event.getEventName();
             String key = channel + name;
 
-            Set<ClientConfig> configSet = requestMap.get(key);
+            Set<ClientConfig> configSet = requestMap.get(key); // Configs listening for this type of event
+            Set<ClientConfig> allConfigSet = requestMap.get(channel); // Configs listening on all events types
+
             if (configSet == null) {
-                return; // Nothing waiting on this event name
+                if (allConfigSet == null) {
+                    return; // Nothing waiting on this event name
+                }
+                else {
+                    configSet = allConfigSet;
+                }
+            } else {
+                if (allConfigSet != null) {
+                    configSet.addAll(allConfigSet);
+                }
             }
 
-            boolean allAttributes = false; // Is there a client that wants *all* the attributes
+            // configSet now contains all the configs we have to check to see
+            // if they match for this particular event
 
             top: for (ClientConfig config : configSet) {
-                Map<String, Set<ClientConfig>> attrMap = new HashMap<>();
-                Map<ClientConfig, Event> outMap = new HashMap<>();
+                Event e = new Event(name); // This is the internal version of the event
+
                 List<Filter> filters = config.getFilters();
                 for (Filter filter : filters) {
                     if (!filter.matches(event)) {
@@ -72,53 +89,29 @@ public class FilterListener implements EventHandler{
                     }
                 }
 
-                List<String> attrs = config.getRequests().get(name);
-
-                if (attrs == null || attrs.size() == 0) {
-                    allAttributes = true; // Not specifying any attrs at all means you want them all
-                    // The empty string represents 'all attrs'
-                    if (attrMap.get("") == null) {
-                        attrMap.put("", new HashSet<ClientConfig>());
-                    }
-
-                    attrMap.get("").add(config);
-                } else {
-                    // There's just a limited set of attrs
-                    for (String attr : attrs) {
-                        if (attrMap.get(attr) == null) {
-                            attrMap.put(attr, new HashSet<ClientConfig>());
-                        }
-                        attrMap.get(attr).add(config);
+                // Determine the list of attrs specified in the config, use "" as a shorthand for all event types
+                List<String> configAttrsList = config.getRequests().get(name);
+                if (configAttrsList == null) {
+                    // Try the empty string, which represents all types
+                    configAttrsList = config.getRequests().get("");
+                    if (configAttrsList == null) { // Should never happen
+                        System.out.println("Client config without proper requests, name=" + name +
+                        " clientConfig=" + config);
+                        return;
                     }
                 }
 
-                if (allAttributes) {
-                    for (String attr : event.getEventAttributes()) {
-                        Object value = event.get(attr);
-                        for (ClientConfig allAttrsConfig : requestMap.get("")) {
-                            addAttr(outMap, allAttrsConfig, name, attr, value);
-                            for (ClientConfig someAttrsConfig : requestMap.get(key)) {
-                                addAttr(outMap, someAttrsConfig, name, attr, value);
-                            }
-                        }
-                    }
-                } else {
-                    for (Map.Entry<String, Set<ClientConfig>> entry : attrMap.entrySet()) {
-                        String attr = entry.getKey();
-                        if (!event.isSet(attr)) {
-                            continue;
-                        }
-                        Object value = event.get(attr);
-                        for (ClientConfig someAttrsConfig : entry.getValue()) {
-                            addAttr(outMap, someAttrsConfig, name, attr, value);
-                        }
+                Set<String> configAttrs = new HashSet<>(configAttrsList);
+                boolean allAttributes = configAttrs.size() == 0;
+
+                for (String attr : event.getEventAttributes()) {
+                    if (allAttributes || configAttrs.contains(attr)) {
+                        e.setAttr(attr, event.get(attr));
                     }
                 }
-                // Put each event on the queue for each client ties to the client config
-                for (Map.Entry<ClientConfig,Event> entry : outMap.entrySet()) {
-                    for (Client client : entry.getKey().clients) {
-                        client.events.add(entry.getValue());
-                    }
+
+                for (Client client : config.clients) {
+                    client.events.add(e);
                 }
             }
         }
