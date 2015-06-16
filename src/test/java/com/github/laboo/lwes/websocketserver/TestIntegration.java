@@ -3,6 +3,8 @@ package com.github.laboo.lwes.websocketserver;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
 import org.lwes.emitter.MulticastEventEmitter;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -19,8 +21,22 @@ import java.util.Map;
 public class TestIntegration {
     private static URI uri = URI.create("http://localhost:8887");
     private static Draft d = new Draft_17();
-    @Test(groups= {"integration"})
+    private static Main main;
 
+
+    @BeforeSuite
+    public void setup() throws org.apache.commons.cli.ParseException {
+        String[] args = new String[0];
+        main = new Main(args);
+        main.start();
+    }
+
+    @AfterSuite
+    public void shutdown() {
+        main.stop();
+    }
+
+    @Test(groups= {"integration"})
     public void testSimple() throws Exception {
         String config = "{'batchSize': 1, 'ip':'224.0.0.69','port':9191,'filters':[],'requests':{'MyEvent': ['key', 'z']}}";
         WSClient c = new WSClient(uri, d, config);
@@ -28,19 +44,16 @@ public class TestIntegration {
         c.connect();
 
         while (!c.getConnection().isOpen()) {
-            Thread.sleep(100);
+            Thread.sleep(1000);
         }
 
         org.lwes.Event e = emit("MyEvent", "key", 1);
+        List<String> list = c.getAll(1000);
 
-        List<String> list = c.getAll(2000);
-        if (!list.isEmpty()) {
-            for (String event : list) {
-                System.out.println("got event:" + event);
-            }
-        } else {
+        if (list.isEmpty()) {
             throw new Exception("timed out");
         }
+
         c.close();
     }
 

@@ -18,28 +18,53 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 /**
  * Created by mlibucha on 5/9/15.
  */
-public class Main extends WebSocketServer {
+public class Main extends WebSocketServer implements Runnable {
     public static int port = 8887;
     private Map<WebSocket,Client> connToClientMap = new ConcurrentHashMap<>();
     private Map<String, FilterListener> channelToListenerMap = new ConcurrentHashMap<>();
     private Map<Client,String> clientToChannelMap = new ConcurrentHashMap<>();
     private static ObjectMapper mapper = new ObjectMapper();
+    private String[] args;
+    private Thread t;
+
     public Main() {super(new InetSocketAddress(port));}
 
-    public static void main(String[] args) throws UnknownHostException, org.apache.commons.cli.ParseException {
+    public Main(String[] args) {
+        this();
+        this.args = args;
+    }
 
+    public static CommandLine parseArgs(String[] args) throws org.apache.commons.cli.ParseException {
+        Options options = new Options();
+        options.addOption("e", "--emit", false, "Emit events for testing purposes");
+        BasicParser parser = new BasicParser();
+        return parser.parse(options, args);
+    }
+
+    public void start() {
+        t = new Thread(new Main(this.args));
+        t.start();
+    }
+
+    public void stop() {
+        t.interrupt();
+    }
+
+    public static void main(String[] args) throws UnknownHostException, org.apache.commons.cli.ParseException {
+        new Main().run(args);
+    }
+
+    ExecutorService executor = Executors.newFixedThreadPool(5);
+
+    public void run(String args[]) throws org.apache.commons.cli.ParseException {
+        CommandLine cl = parseArgs(args);
         Main server = new Main();
         server.start();
-
-        Options options = new Options();
-        options.addOption("e", false, "Emit events for testing purposes");
-        BasicParser parser = new BasicParser();
-        CommandLine cl = parser.parse(options, args);
 
         int count = 0;
         MulticastEventEmitter emitter = null;
@@ -52,7 +77,7 @@ public class Main extends WebSocketServer {
                 emitter.initialize();
             }
 
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 if (cl.hasOption("e")) {
                     org.lwes.Event e = emitter.createEvent("MyEvent", false);
                     e.setString("key", String.valueOf(count++));
@@ -111,7 +136,6 @@ public class Main extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        System.out.println("Closing: code=" + code + " reason=" + reason + " remote=" + remote);
         close(conn);
         ConfigMap.print();
     }

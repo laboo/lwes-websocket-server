@@ -31,13 +31,11 @@ public class WSClient extends  WebSocketClient {
 
     @OnMessage
     public void onMessage(String message) {
-        System.out.println("adding message: " + message);
         q.add(message);
     }
 
     @OnOpen
     public void onOpen(ServerHandshake handshake) {
-        System.out.println("on open!!!: " + this.init);
         this.send(this.init);
     }
 
@@ -58,7 +56,6 @@ public class WSClient extends  WebSocketClient {
             try {
                 String str = q.poll(ms, TimeUnit.MILLISECONDS);
                 if (str != null) {
-                    System.out.println("str=" + str);
                     list.add(str);
                 }
             } catch (InterruptedException ie) {

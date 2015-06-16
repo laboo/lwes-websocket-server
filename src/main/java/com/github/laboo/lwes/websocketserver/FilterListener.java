@@ -38,7 +38,6 @@ public class FilterListener implements EventHandler{
             listener.addHandler(this);
             listener.setQueueSize(this.queueSize);
         }
-        System.out.println("starting listener: " + this.ip + ":" + this.port);
         listener.initialize();
     }
 
@@ -54,7 +53,6 @@ public class FilterListener implements EventHandler{
 
     // Static for simpler testing
     public static void handleEvent(org.lwes.Event event, String channel) {
-
         if (event != null) {
             Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
             String name = event.getEventName();
@@ -131,7 +129,6 @@ public class FilterListener implements EventHandler{
     }
 
     public void destroy() {
-        System.out.println("destroying listener: " + this.ip + ":" + this.port);
         listener.shutdown();
     }
 }
