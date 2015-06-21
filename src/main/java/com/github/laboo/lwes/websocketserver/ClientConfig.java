@@ -184,8 +184,6 @@ public class ClientConfig {
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         Map<String,Object> config = mapper.readValue(json, Map.class);
 
-        //System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config));
-
         int batchSize = DEFAULT_BATCH_SIZE;
         int maxSecs = DEFAULT_MAX_SECS;
         String ip = null;

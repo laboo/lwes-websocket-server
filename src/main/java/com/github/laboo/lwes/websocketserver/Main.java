@@ -1,5 +1,6 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -62,6 +63,8 @@ public class Main extends WebSocketServer implements Runnable {
     ExecutorService executor = Executors.newFixedThreadPool(5);
 
     public void run(String args[]) throws org.apache.commons.cli.ParseException {
+        Logger log = Log.getLogger();
+        log.info("info help");
         CommandLine cl = parseArgs(args);
         Main server = new Main();
         server.start();
@@ -86,9 +89,9 @@ public class Main extends WebSocketServer implements Runnable {
                 Thread.sleep(1000);
             }
         } catch (IOException ioe) {
-            System.out.println(ioe);
+            log.error(ioe.toString());
         } catch (InterruptedException ie) {
-            System.out.println("Interrupted. Quitting.");
+            log.info("Interrupted. Quitting.");
         }
     }
 

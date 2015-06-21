@@ -1,5 +1,6 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Client {
 
+    private static Logger log = Log.getLogger();
     private static ObjectMapper mapper = new ObjectMapper();
     private WebSocket conn;
     private ClientConfig config;
@@ -65,7 +67,7 @@ public class Client {
                 } catch (Exception e) {
                     // All exceptions are fatal
                     if (!(e instanceof WebsocketNotConnectedException)) {
-                        System.out.println("client thread closing conn: " + e);
+                        log.warn("client thread closing conn: " + e);
                         this.conn.close();
                     }
                     return;

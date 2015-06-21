@@ -1,5 +1,7 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Logger;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum ConfigMap {
     INSTANCE;
 
+    private static Logger log = Log.getLogger();
     private static Map<String, Set<ClientConfig>> requestMap;
 
     static {
@@ -24,21 +27,23 @@ public enum ConfigMap {
     }
 
     public synchronized static void print() {
-        System.out.println("---------------------");
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n---------------------\n");
         for (Map.Entry<String, Set<ClientConfig>> entry : requestMap.entrySet()) {
-            System.out.print(entry.getKey() + " => [");
+            sb.append(entry.getKey() + " => [");
             for (ClientConfig cc : entry.getValue()) {
                 try {
-                    System.out.print("\n  ");
-                    System.out.print("(" + cc.clients.size() + ") ");
-                    System.out.print(cc);
+                    sb.append("  \n");
+                    sb.append("(" + cc.clients.size() + ") ");
+                    sb.append(cc);
                 } catch (Exception e) {
-                    System.out.println("aha!!! " + e);
+                    log.warn(e.toString());
                 }
             }
-            System.out.println(" ]");
+            sb.append(" ]\n");
         }
-        System.out.println("---------------------");
+        sb.append("---------------------");
+        log.info(sb.toString());
     }
 
     public synchronized static int sizeOfRequestMap() {

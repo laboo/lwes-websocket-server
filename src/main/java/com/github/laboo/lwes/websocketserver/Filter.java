@@ -1,5 +1,6 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,6 +13,7 @@ import java.util.regex.PatternSyntaxException;
 
 @JsonIgnoreProperties({"pattern"})
 public class Filter {
+    private static Logger log = Log.getLogger();
     private String name;
     private String attribute;
     private String value;
@@ -76,13 +78,13 @@ public class Filter {
 
     public boolean matches(org.lwes.Event event) {
         if (!namePattern.matcher(event.getEventName()).matches()) {
-            System.out.println("name doesn't match");
+            log.trace("name doesn't match");
             return false;
         }
 
         Object value = event.get(attribute);
         if (value == null) {
-            System.out.println("value is null for " + attribute);
+            log.trace("value is null for " + attribute);
             return false;
         }
 

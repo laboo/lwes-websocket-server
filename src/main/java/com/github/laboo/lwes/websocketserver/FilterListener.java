@@ -1,5 +1,6 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Logger;
 import org.lwes.listener.DatagramEventListener;
 import org.lwes.listener.EventHandler;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by mlibucha on 5/10/15.
  */
 public class FilterListener implements EventHandler{
+    private static Logger log = Log.getLogger();
     public static int DEFAULT_QUEUE_SIZE = 5000;
     private String ip;
     private int port;
@@ -93,8 +95,8 @@ public class FilterListener implements EventHandler{
                     // Try the empty string, which represents all types
                     configAttrsList = config.getRequests().get("");
                     if (configAttrsList == null) { // Should never happen
-                        System.out.println("Client config without proper requests, name=" + name +
-                        " clientConfig=" + config);
+                        log.warn("Client config without proper requests, name=" + name +
+                                " clientConfig=" + config);
                         return;
                     }
                 }
