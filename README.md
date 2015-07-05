@@ -1,4 +1,4 @@
-### LWEB WebSocket Server
+### LWES WebSocket Server
 
 A server that listens on UDP mulitcast channels (224.0.0.x:port) and serves up any [LWES](https://github.com/lwes/) events emitted on those channels to clients as JSON objects over [WebSockets](https://tools.ietf.org/html/rfc6455).
 
