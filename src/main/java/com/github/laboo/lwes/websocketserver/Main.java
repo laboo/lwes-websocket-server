@@ -69,7 +69,7 @@ public class Main extends WebSocketServer implements Runnable {
         Main server = new Main();
         server.start();
 
-        int count = 0;
+        long count = 0;
         MulticastEventEmitter emitter = null;
         try {
             if (cl.hasOption("e")) {
@@ -82,11 +82,23 @@ public class Main extends WebSocketServer implements Runnable {
 
             while (!Thread.currentThread().isInterrupted()) {
                 if (cl.hasOption("e")) {
-                    org.lwes.Event e = emitter.createEvent("MyEvent", false);
-                    e.setString("key", String.valueOf(count++));
-                    emitter.emit(e);
+                    org.lwes.Event e = null;
+                    if (count % 2 == 0) {
+                        e = emitter.createEvent("Click", false);
+                        e.setString("url", "http://www.example.com");
+                    } else if (count % 3 == 0) {
+                        e = emitter.createEvent("Search", false);
+                        e.setString("term", "the thing I'm searching for");
+                        e.setDouble("lat", 51.5033630);
+                        e.setDouble("lon", -0.1276250);
+                    } else {
+                        e = emitter.createEvent("Ad", false);
+                        e.setString("text", "Buy my product");
+                    }
+                        e.setInt64("count", count++);
+                        emitter.emit(e);
                 }
-                Thread.sleep(1000);
+                    Thread.sleep(1000);
             }
         } catch (IOException ioe) {
             log.error(ioe.toString());
