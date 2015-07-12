@@ -27,7 +27,7 @@ dependencies {
     compile 'org.testng:testng:6.8.21'
     compile 'com.google.guava:guava:18.0'
     compile 'javax.websocket:javax.websocket-api:1.1'
-    compile 'commons-cli:commons-cli:1.2'
+    compile 'commons-cli:commons-cli:1.3'
     compile 'org.antlr:stringtemplate:3.2'
     compile 'ch.qos.logback:logback-classic:1.1.3'
 }
@@ -48,6 +48,7 @@ buildscript {
 }
 
 shadowJar {
+    dependsOn("test")
     baseName = 'lwes-websocket-server'
     destinationDir = file("$buildDir/lib")
     manifest {

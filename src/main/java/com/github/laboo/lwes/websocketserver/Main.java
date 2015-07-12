@@ -1,10 +1,9 @@
 package com.github.laboo.lwes.websocketserver;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -14,74 +13,99 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.*;
 
 /**
  * Created by mlibucha on 5/9/15.
  */
 public class Main extends WebSocketServer implements Runnable {
-    public static int port = 8887;
+    public static int DEFAULT_PORT = 8887;
     private Map<WebSocket,Client> connToClientMap = new ConcurrentHashMap<>();
     private Map<String, FilterListener> channelToListenerMap = new ConcurrentHashMap<>();
     private Map<Client,String> clientToChannelMap = new ConcurrentHashMap<>();
     private static ObjectMapper mapper = new ObjectMapper();
-    private String[] args;
+    private CommandLine cl;
     private Thread t;
+    private static int port = DEFAULT_PORT;
 
-    public Main() {super(new InetSocketAddress(port));}
+    public Main(int port) {
+        super(new InetSocketAddress(port));
+    }
 
-    public Main(String[] args) {
-        this();
-        this.args = args;
+    public Main(int port, CommandLine cl) {
+        this(port);
+        this.port = port;
+        this.cl = cl;
     }
 
     public static CommandLine parseArgs(String[] args) throws org.apache.commons.cli.ParseException {
         Options options = new Options();
-        options.addOption("e", "--emit", false, "Emit events for testing purposes");
-        BasicParser parser = new BasicParser();
+        Option emit = Option.builder("e")
+                .required(false)
+                .desc("Emit events for testing purposes (false)")
+                .longOpt("emit")
+                .build();
+        Option port = Option.builder("p")
+                .required(false)
+                .hasArg()
+                .type(Integer.class)
+                .desc("TCP port to listen on for WebSocket connections (8887)")
+                .longOpt("port")
+                .build();
+        Option level = Option.builder("l")
+                .required(false)
+                .hasArg()
+                .desc("Log level: trace, debug, info, warn, or error (warn)")
+                .longOpt("log-level")
+                .build();
+        Option mbs = Option.builder("m")
+                .required(false)
+                .hasArg()
+                .desc("Log rollover MB trigger (5)")
+                .longOpt("log-mbs")
+                .build();
+        options.addOption(emit);
+        options.addOption(port);
+        options.addOption(level);
+        options.addOption(mbs);
+        // TODO log pattern
+        DefaultParser parser = new DefaultParser();
         return parser.parse(options, args);
     }
 
-    public void start() {
-        t = new Thread(new Main(this.args));
-        t.start();
-    }
-
-    public void stop() {
-        t.interrupt();
-    }
-
     public static void main(String[] args) throws UnknownHostException, org.apache.commons.cli.ParseException {
-        new Main().run(args);
+        CommandLine cl = parseArgs(args);
+        String port = cl.getOptionValue("port", String.valueOf(DEFAULT_PORT));
+        new Main(Integer.parseInt(port),cl).go();
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    public void run(String args[]) throws org.apache.commons.cli.ParseException {
-        Logger log = Log.getLogger();
-        log.info("info help");
-        CommandLine cl = parseArgs(args);
-        Main server = new Main();
-        server.start();
+    public void go() throws org.apache.commons.cli.ParseException {
+        String mbs = cl.getOptionValue('m', String.valueOf(Log.DEFAULT_ROLLOVER_MBS));
+        Logger log = Log.getLogger(Integer.parseInt(mbs), Log.DEFAULT_PATTERN);
+        String levelStr = this.cl.getOptionValue("l", Level.WARN.toString());
+        Level level = determineLogLevel(levelStr);
+        log.setLevel(Level.ALL);
+        log.info("Log level from here on out is " + level);
+        log.setLevel(level);
+
+        this.start();
 
         long count = 0;
         MulticastEventEmitter emitter = null;
         try {
-            if (cl.hasOption("e")) {
+            if (cl != null && cl.hasOption("e")) {
                 emitter = new MulticastEventEmitter();
                 emitter.setESFFilePath("/path/to/esf/file");
                 emitter.setMulticastAddress(InetAddress.getByName("224.0.0.69"));
                 emitter.setMulticastPort(9191);
                 emitter.initialize();
             }
-
             while (!Thread.currentThread().isInterrupted()) {
-                if (cl.hasOption("e")) {
+                if (cl != null && cl.hasOption("e")) {
                     org.lwes.Event e = null;
                     if (count % 2 == 0) {
                         e = emitter.createEvent("Click", false);
@@ -95,10 +119,10 @@ public class Main extends WebSocketServer implements Runnable {
                         e = emitter.createEvent("Ad", false);
                         e.setString("text", "Buy my product");
                     }
-                        e.setInt64("count", count++);
-                        emitter.emit(e);
+                    e.setInt64("count", count++);
+                    emitter.emit(e);
                 }
-                    Thread.sleep(1000);
+                Thread.sleep(1000);
             }
         } catch (IOException ioe) {
             log.error(ioe.toString());
@@ -192,6 +216,23 @@ public class Main extends WebSocketServer implements Runnable {
         conn.close();
     }
 
+    private Level determineLogLevel(String levelStr) throws ParseException {
+        if (levelStr.equalsIgnoreCase("TRACE")) {
+            return Level.TRACE;
+        } else if (levelStr.equalsIgnoreCase("DEBUG")) {
+            return Level.DEBUG;
+        } else if (levelStr.equalsIgnoreCase("INFO")) {
+            return Level.INFO;
+        } else if (levelStr.equalsIgnoreCase("WARN")) {
+            return Level.WARN;
+        } else if (levelStr.equalsIgnoreCase("ERROR")) {
+            return Level.ERROR;
+        } else {
+            throw new ParseException("Level [" + levelStr + "] not valid."
+                    + " Choices are trace, debug, info, warn and error");
+        }
+    }
+
     synchronized private void assignClient(Client client) throws UnknownHostException {
         ClientConfig config = client.getConfig();
         String channel = config.getChannel();
@@ -199,6 +240,7 @@ public class Main extends WebSocketServer implements Runnable {
         if (l == null) {
             l = new FilterListener(config.getIp(), config.getPort());
             channelToListenerMap.put(channel, l);
+
             l.start();
         }
     }

@@ -43,7 +43,7 @@ public enum ConfigMap {
             sb.append(" ]\n");
         }
         sb.append("---------------------");
-        log.info(sb.toString());
+        log.debug(sb.toString());
     }
 
     public synchronized static int sizeOfRequestMap() {
@@ -66,13 +66,16 @@ public enum ConfigMap {
             String key = entry.getKey();
             Set<ClientConfig> oldSet = entry.getValue();
             Set<ClientConfig> newSet = new HashSet<ClientConfig>();
+            boolean contains = oldSet.contains(clientConfig);
             for (ClientConfig cc : oldSet) {
                 newSet.add(cc);
                 // If we've already got an "equals" client config, we don't want to replace it
                 // with the new one. We want to leave the old one in place, and later the connection
                 // for the new client config will get added to the old client config.
-                if (cc.equals(clientConfig)) {
-                    outConfig = cc;
+                if (contains || cc.equals(clientConfig)) {
+                    if (cc.equals(clientConfig)) {
+                        outConfig = cc;
+                    }
                     continue;
                 }
                 for (Map.Entry<String,List<String>> entry2 : clientConfig.getRequests().entrySet()) {

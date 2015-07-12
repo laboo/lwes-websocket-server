@@ -88,7 +88,7 @@ public class Filter {
             return false;
         }
 
-        return valuePattern.matcher((String) value).matches();
+        return valuePattern.matcher(String.valueOf(value)).matches();
     }
 
     @Override

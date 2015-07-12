@@ -15,8 +15,14 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 // Thanks: http://stackoverflow.com/questions/16910955/programmatically-configure-logback-appender
 public class Log {
     private static Logger logger = null;
+    public static int DEFAULT_ROLLOVER_MBS = 5;
+    public static String DEFAULT_PATTERN = "%d [%thread] %-5level %logger{35} - %msg%n";
 
     public static synchronized Logger getLogger() {
+        return getLogger(DEFAULT_ROLLOVER_MBS, DEFAULT_PATTERN);
+    }
+
+    public static synchronized Logger getLogger(int mbs, String pattern) {
         if (logger == null) {
             LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 
@@ -30,12 +36,12 @@ public class Log {
             rollingPolicy.start();
 
             SizeBasedTriggeringPolicy triggeringPolicy = new ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy();
-            triggeringPolicy.setMaxFileSize("5MB");
+            triggeringPolicy.setMaxFileSize(mbs + "MB");
             triggeringPolicy.start();
 
             PatternLayoutEncoder encoder = new PatternLayoutEncoder();
             encoder.setContext(loggerContext);
-            encoder.setPattern("%d [%thread] %-5level %logger{35} - %msg%n");
+            encoder.setPattern(pattern);
             encoder.start();
 
             rfAppender.setEncoder(encoder);

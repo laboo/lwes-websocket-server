@@ -27,13 +27,15 @@ public class TestIntegration {
     @BeforeSuite
     public void setup() throws org.apache.commons.cli.ParseException {
         String[] args = new String[0];
-        main = new Main(args);
+        main = new Main(Main.DEFAULT_PORT);
         main.start();
     }
 
     @AfterSuite
     public void shutdown() {
-        main.stop();
+        try {
+            main.stop();
+        } catch (Exception ignore) {};
     }
 
     @Test(groups= {"integration"})
