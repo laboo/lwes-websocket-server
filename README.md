@@ -33,7 +33,7 @@ java -jar build/lib/lwes-websocket-server-1.0-all.jar -e -p 8888
 
 ### Connecting with a WebSocket client
 
-The WebSocket client (full clients: [Java](http://localhost:8080/) and [JavaScript](http://localhost:8080/)) must pass a JSON object like the follow (see wiki for exact spec):
+The WebSocket client (full clients: [Java](./src/main/java/com/github/laboo/lwes/client/WSClient.java) and [JavaScript](./src/main/js/client.js)) must pass a JSON object like the follow (see wiki for exact spec):
 
 ```
 {
