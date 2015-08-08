@@ -4,7 +4,7 @@ A server that listens on UDP mulitcast channels (224.0.0.x:port) and serves up a
 
 LWES events are simple messages consisting of a name and a map of attributes/value pairs. They are typically used as an alternative to log files for tracking events.
 
-For example, let's say you have web site and want to track each search, click and ad. As these events happen, instead of writing each out to a log file, which is slow, you broadcast the events on the network. Then some single-purpose servers listen on the network, capture those events and write them out to log files.
+For example, let's say you have web site and want to track each search, click and ad. As these events occur, instead of writing each out to a log file, which is slow, you broadcast the events on the network. Then, you set up some separate single-purpose servers to listen on the network, capture those events and write them out to log files.
 
 What this project does is listen for those same events on the network, but instead of writing them out to disk, it serves them up over web sockets, through filters if desired.
 
@@ -18,7 +18,7 @@ Windows
 gradle.bat shadowJar
 ```
 
-### Running (assumes you have JRE installed)
+### Running (assumes you have JRE 1.7+ installed)
 
 ```
 java -jar build/lib/lwes-websocket-server-1.0-all.jar -e
@@ -47,9 +47,9 @@ The WebSocket client (full clients: [Java](./src/main/java/com/github/laboo/lwes
 }
 ```
 
-This request asks the server to listen for LWES events on channel 224:0.0.69:9191 (a UDP Multicast port) for events with the names "Click" and "Search". If it finds them it sends them over the WebSocket including only the attributes specified for each name. So, for "Search" events, it returns the "term", "lat" and "lon" attributes and their values, but no others. It will send the events over the WebSocket in batches of 5 or every 60 seconds, whichever comes first.
+This request asks the server to listen for LWES events on channel 224:0.0.69:9191 (a UDP Multicast port) for events with the names "Click", "Search", and "Ad". If it finds them it sends them over the WebSocket including only the attributes specified for each name. So, for "Search" events, it returns the "term", "lat", "lon", and "count" attributes and their values, but no others. It will send the events over the WebSocket in batches of 5 or every 60 seconds, whichever comes first.
 
-Regular expressions and filters can be used to define which events and attributes should be returned. See the wiki for the details.
+Regular expressions and filters can be used to define which events and attributes should be returned. [See the wiki](https://github.com/laboo/lwes-websocket-server/wiki/Client-Usage) for the details.
 
 ### The Response
 
@@ -90,6 +90,8 @@ Here's the error response we get:
    "data":[]
 }
 ```
+More [on the wiki](https://github.com/laboo/lwes-websocket-server/wiki/Client-Usage)
+
 
 
 

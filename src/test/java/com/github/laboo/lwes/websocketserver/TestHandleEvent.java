@@ -93,7 +93,7 @@ public class TestHandleEvent {
         long deadline = System.currentTimeMillis() + secs * 1000;
         List<Event> list = new ArrayList<>();
         for (org.lwes.Event e : es) {
-            FilterListener.handleEvent(e, CHANNEL);
+            Listener.handleEvent(e, CHANNEL);
             long waitTime = deadline - System.currentTimeMillis();
             if (waitTime < 0) {
                 break;

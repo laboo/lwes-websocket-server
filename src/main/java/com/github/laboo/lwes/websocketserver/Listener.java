@@ -7,12 +7,11 @@ import org.lwes.listener.EventHandler;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by mlibucha on 5/10/15.
  */
-public class FilterListener implements EventHandler{
+public class Listener implements EventHandler{
     private static Logger log = Log.getLogger();
     public static int DEFAULT_QUEUE_SIZE = 5000;
     private String ip;
@@ -21,11 +20,11 @@ public class FilterListener implements EventHandler{
     private int queueSize;
     DatagramEventListener listener;
 
-    public FilterListener(String ip, int port) {
+    public Listener(String ip, int port) {
         this(ip, port, DEFAULT_QUEUE_SIZE);
     }
 
-    public FilterListener(String ip, int port, int queueSize) {
+    public Listener(String ip, int port, int queueSize) {
         this.ip = ip;
         this.port = port;
         this.queueSize = queueSize;

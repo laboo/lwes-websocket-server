@@ -29,7 +29,7 @@ public class TestConfigMap {
         org.lwes.Event event = new org.lwes.MapEvent();
         event.setEventName("a");
         event.setString("b", "c");
-        FilterListener fl = new FilterListener("1.2.3.4", 1234);
+        Listener fl = new Listener("1.2.3.4", 1234);
         fl.handleEvent(event);
 
     }

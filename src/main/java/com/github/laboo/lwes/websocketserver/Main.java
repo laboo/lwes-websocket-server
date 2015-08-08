@@ -23,7 +23,7 @@ import java.util.concurrent.*;
 public class Main extends WebSocketServer implements Runnable {
     public static int DEFAULT_PORT = 8887;
     private Map<WebSocket,Client> connToClientMap = new ConcurrentHashMap<>();
-    private Map<String, FilterListener> channelToListenerMap = new ConcurrentHashMap<>();
+    private Map<String, Listener> channelToListenerMap = new ConcurrentHashMap<>();
     private Map<Client,String> clientToChannelMap = new ConcurrentHashMap<>();
     private static ObjectMapper mapper = new ObjectMapper();
     private CommandLine cl;
@@ -199,7 +199,7 @@ public class Main extends WebSocketServer implements Runnable {
         String channel = client.getConfig().getChannel();
 
         clientToChannelMap.remove(client);
-        FilterListener l = channelToListenerMap.get(channel);
+        Listener l = channelToListenerMap.get(channel);
         if (l != null) {
             boolean destroy = true;
             for (String ch : clientToChannelMap.values()) {
@@ -236,9 +236,9 @@ public class Main extends WebSocketServer implements Runnable {
     synchronized private void assignClient(Client client) throws UnknownHostException {
         ClientConfig config = client.getConfig();
         String channel = config.getChannel();
-        FilterListener l = channelToListenerMap.get(channel);
+        Listener l = channelToListenerMap.get(channel);
         if (l == null) {
-            l = new FilterListener(config.getIp(), config.getPort());
+            l = new Listener(config.getIp(), config.getPort());
             channelToListenerMap.put(channel, l);
 
             l.start();
