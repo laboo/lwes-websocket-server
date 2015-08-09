@@ -161,7 +161,12 @@ public class ClientConfig {
         sb.append(" requests:");
         if (requests != null) {
             for (Map.Entry<String, List<String>> entry : requests.entrySet()) {
-                sb.append(entry.getKey());
+                sb.append(" ");
+                if (entry.getKey().length() == 0) {
+                    sb.append("*");
+                } else {
+                    sb.append(entry.getKey());
+                }
                 sb.append("=>[");
                 boolean first = true;
                 for (String attr : entry.getValue()) {

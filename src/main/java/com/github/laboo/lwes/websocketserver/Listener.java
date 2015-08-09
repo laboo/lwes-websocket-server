@@ -54,79 +54,68 @@ public class Listener implements EventHandler{
 
     // Static for simpler testing
     public static void handleEvent(org.lwes.Event event, String channel) {
-        if (event != null) {
-            Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
-            String name = event.getEventName();
-            String key = channel + name;
+        try {
+            if (event != null) {
+                Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
+                String name = event.getEventName();
+                String key = channel + name;
+                Set<ClientConfig> configSet = requestMap.get(key); // Configs listening for this type of event
+                Set<ClientConfig> allConfigSet = requestMap.get(channel); // Configs listening on all events types
 
-            Set<ClientConfig> configSet = requestMap.get(key); // Configs listening for this type of event
-            Set<ClientConfig> allConfigSet = requestMap.get(channel); // Configs listening on all events types
-
-            if (configSet == null) {
-                if (allConfigSet == null) {
-                    return; // Nothing waiting on this event name
+                if (configSet != null) {
+                    handleConfigSet(configSet, null, event, name);
                 }
-                else {
-                    configSet = allConfigSet;
-                }
-            } else {
                 if (allConfigSet != null) {
-                    configSet.addAll(allConfigSet);
+                    handleConfigSet(allConfigSet, configSet, event, name);
                 }
             }
-
-            // configSet now contains all the configs we have to check to see
-            // if they match for this particular event
-
-            top: for (ClientConfig config : configSet) {
-                Event e = new Event(name); // This is the internal version of the event
-
-                List<Filter> filters = config.getFilters();
-                for (Filter filter : filters) {
-                    if (!filter.matches(event)) {
-                        continue top; // One filter miss rejects the event for this config
-                    }
-                }
-
-                // Determine the list of attrs specified in the config, use "" as a shorthand for all event types
-                List<String> configAttrsList = config.getRequests().get(name);
-                if (configAttrsList == null) {
-                    // Try the empty string, which represents all types
-                    configAttrsList = config.getRequests().get("");
-                    if (configAttrsList == null) { // Should never happen
-                        log.warn("Client config without proper requests, name=" + name +
-                                " clientConfig=" + config);
-                        return;
-                    }
-                }
-
-                Set<String> configAttrs = new HashSet<>(configAttrsList);
-                boolean allAttributes = configAttrs.size() == 0;
-
-                for (String attr : event.getEventAttributes()) {
-                    if (allAttributes || configAttrs.contains(attr)) {
-                        e.setAttr(attr, event.get(attr));
-                    }
-                }
-
-                for (Client client : config.clients) {
-                    client.events.add(e);
-                }
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private static void addAttr(Map<ClientConfig, Event> map,
-                                ClientConfig config,
-                                String name,
-                                String attr,
-                                Object value) {
-        Event event = map.get(config);
-        if (event == null) {
-            event = new Event(name);
+    private static void handleConfigSet(Set<ClientConfig> configSet,
+                                        Set<ClientConfig> excludedConfigSet,
+                                        org.lwes.Event event,
+                                        String name) {
+        top: for (ClientConfig config : configSet) {
+            if (excludedConfigSet != null && excludedConfigSet.contains(config)) {
+                continue;
+            }
+
+            Event e = new Event(name); // This is the internal version of the event
+
+            List<Filter> filters = config.getFilters();
+            for (Filter filter : filters) {
+                if (!filter.matches(event)) {
+                    continue top; // One filter miss rejects the event for this config
+                }
+            }
+
+            // Determine the list of attrs specified in the config, use "" as a shorthand for all event types
+            List<String> configAttrsList = config.getRequests().get(name);
+            if (configAttrsList == null) {
+                // Try the empty string, which represents all types
+                configAttrsList = config.getRequests().get("");
+                if (configAttrsList == null) { // Should never happen
+                    log.warn("Client config without proper requests, name=" + name +
+                            " clientConfig=" + config);
+                    return;
+                }
+            }
+
+            Set<String> configAttrs = new HashSet<>(configAttrsList);
+            boolean allAttributes = configAttrs.size() == 0;
+            for (String attr : event.getEventAttributes()) {
+                if (allAttributes || configAttrs.contains(attr)) {
+                    e.setAttr(attr, event.get(attr));
+                }
+            }
+
+            for (Client client : config.clients) {
+                client.events.add(e);
+            }
         }
-        event.setAttr(attr, value);
-        map.put(config,event);
     }
 
     public void destroy() {
