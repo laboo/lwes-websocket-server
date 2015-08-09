@@ -7,6 +7,7 @@ import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
+import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
@@ -25,7 +26,7 @@ public class TestIntegration {
 
 
     @BeforeSuite
-    public void setup() throws org.apache.commons.cli.ParseException {
+    public void setup() throws org.apache.commons.cli.ParseException, DeploymentException {
         String[] args = new String[0];
         main = new Main(Main.DEFAULT_PORT);
         main.start();

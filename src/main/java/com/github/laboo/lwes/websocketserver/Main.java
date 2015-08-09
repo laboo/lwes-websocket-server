@@ -4,40 +4,56 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.*;
-import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
+
+import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
+
+import org.glassfish.tyrus.server.Server;
 import org.lwes.emitter.MulticastEventEmitter;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
 /**
  * Created by mlibucha on 5/9/15.
  */
-public class Main extends WebSocketServer implements Runnable {
+public class Main {
     public static int DEFAULT_PORT = 8887;
-    private Map<WebSocket,Client> connToClientMap = new ConcurrentHashMap<>();
-    private Map<String, Listener> channelToListenerMap = new ConcurrentHashMap<>();
-    private Map<Client,String> clientToChannelMap = new ConcurrentHashMap<>();
-    private static ObjectMapper mapper = new ObjectMapper();
+    private Server server;
     private CommandLine cl;
     private Thread t;
     private static int port = DEFAULT_PORT;
 
     public Main(int port) {
-        super(new InetSocketAddress(port));
+        System.out.println("help");
+        this.port = port;
+        // TODO wtf is this map???
+        this.server = new Server("localhost", port, "/", new HashMap<String, Object>(),
+                LwesWebSocketEndpoint.class);
+        System.out.println("created");
     }
 
     public Main(int port, CommandLine cl) {
         this(port);
-        this.port = port;
         this.cl = cl;
+    }
+
+    public void start() throws DeploymentException {
+        System.out.println("starting");
+        this.server.start();
+    }
+
+    public void stop() {
+        this.server.stop();
     }
 
     public static CommandLine parseArgs(String[] args) throws org.apache.commons.cli.ParseException {
@@ -75,7 +91,8 @@ public class Main extends WebSocketServer implements Runnable {
         return parser.parse(options, args);
     }
 
-    public static void main(String[] args) throws UnknownHostException, org.apache.commons.cli.ParseException {
+    public static void main(String[] args) throws
+            UnknownHostException, org.apache.commons.cli.ParseException, DeploymentException {
         CommandLine cl = parseArgs(args);
         String port = cl.getOptionValue("port", String.valueOf(DEFAULT_PORT));
         new Main(Integer.parseInt(port),cl).go();
@@ -83,7 +100,7 @@ public class Main extends WebSocketServer implements Runnable {
 
     ExecutorService executor = Executors.newFixedThreadPool(5);
 
-    public void go() throws org.apache.commons.cli.ParseException {
+    public void go() throws org.apache.commons.cli.ParseException, DeploymentException {
         String mbs = cl.getOptionValue('m', String.valueOf(Log.DEFAULT_ROLLOVER_MBS));
         Logger log = Log.getLogger(Integer.parseInt(mbs), Log.DEFAULT_PATTERN);
         String levelStr = this.cl.getOptionValue("l", Level.WARN.toString());
@@ -91,6 +108,8 @@ public class Main extends WebSocketServer implements Runnable {
         log.setLevel(Level.ALL);
         log.info("Log level from here on out is " + level);
         log.setLevel(level);
+
+        //Server server = new Server("localhost", 8025, "/websocket", LwesWebSocketEndpoint.class);
 
         this.start();
 
@@ -129,91 +148,7 @@ public class Main extends WebSocketServer implements Runnable {
         } catch (InterruptedException ie) {
             log.info("Interrupted. Quitting.");
         }
-    }
-
-    @Override
-    public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        Client client = new Client(conn);
-        connToClientMap.put(conn, client);
-    }
-
-    @Override
-    public void onMessage(WebSocket conn, String message) {
-        ClientConfig config = null;
-        try {
-            config = ClientConfig.build(message);
-        } catch (Exception e) {
-            Response response =
-                    new Response(Response.ERROR_TYPE, e.getMessage() + " in " + message, new ArrayList<Event>());
-            try {
-                String data = mapper.writeValueAsString(response);
-                conn.send(data);
-            } catch (Exception e2) {
-                conn.send("Invalid JSON: \n"
-                        + e.getMessage() + "\n"
-                        + message);
-            }
-            conn.close(1011, "Invalid client request");
-            return;
-        }
-        Client client = connToClientMap.get(conn);
-        client.setBatchSize(config.getBatchSize());
-        client.setMaxSecs(config.getMaxSecs());
-        config = ConfigMap.addClientConfig(config);
-        client.setConfig(config);
-        config.addClient(client);
-        clientToChannelMap.put(client, config.getChannel());
-        try {
-            assignClient(client);
-        } catch (UnknownHostException uhe) {
-            conn.send("Unknown host: " + config.getIp());
-        } catch (Exception e) {
-            conn.send("Exception parsing config: " + config);
-        }
-        ConfigMap.print();
-    }
-
-    @Override
-    public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        close(conn);
-        ConfigMap.print();
-    }
-
-    @Override
-    public void onError(WebSocket conn, Exception e) {
-        e.printStackTrace();
-        close(conn); // TODO Research if this is necessary.
-    }
-
-    synchronized private void close(WebSocket conn) {
-        Client client = connToClientMap.remove(conn);
-        if (client == null) {
-            return;
-        }
-        ClientConfig config = client.getConfig();
-        if (config == null) {
-            return;
-        }
-        config.removeClient(client);
-        ConfigMap.removeClientConfig(config);
-        String channel = client.getConfig().getChannel();
-
-        clientToChannelMap.remove(client);
-        Listener l = channelToListenerMap.get(channel);
-        if (l != null) {
-            boolean destroy = true;
-            for (String ch : clientToChannelMap.values()) {
-                if (ch.equals(channel)) {
-                    destroy = false;
-                    break;
-                }
-            }
-            if (destroy) {
-                l = channelToListenerMap.remove(channel);
-                l.destroy();;
-            }
-        }
-        conn.close();
+        this.stop();
     }
 
     private Level determineLogLevel(String levelStr) throws ParseException {
@@ -233,15 +168,4 @@ public class Main extends WebSocketServer implements Runnable {
         }
     }
 
-    synchronized private void assignClient(Client client) throws UnknownHostException {
-        ClientConfig config = client.getConfig();
-        String channel = config.getChannel();
-        Listener l = channelToListenerMap.get(channel);
-        if (l == null) {
-            l = new Listener(config.getIp(), config.getPort());
-            channelToListenerMap.put(channel, l);
-
-            l.start();
-        }
-    }
 }
