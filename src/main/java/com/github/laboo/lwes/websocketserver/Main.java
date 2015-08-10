@@ -32,6 +32,7 @@ public class Main {
     private CommandLine cl;
     private Thread t;
     private static int port = DEFAULT_PORT;
+    private static Options options;
 
     public Main(int port) {
         System.out.println("help");
@@ -57,7 +58,13 @@ public class Main {
     }
 
     public static CommandLine parseArgs(String[] args) throws org.apache.commons.cli.ParseException {
-        Options options = new Options();
+        options = new Options();
+
+        Option help = Option.builder("h")
+                .required(false)
+                .desc("Show help.")
+                .longOpt("help")
+                .build();
         Option emit = Option.builder("e")
                 .required(false)
                 .desc("Emit events for testing purposes (false)")
@@ -82,6 +89,7 @@ public class Main {
                 .desc("Log rollover MB trigger (5)")
                 .longOpt("log-mbs")
                 .build();
+        options.addOption(help);
         options.addOption(emit);
         options.addOption(port);
         options.addOption(level);
@@ -94,6 +102,11 @@ public class Main {
     public static void main(String[] args) throws
             UnknownHostException, org.apache.commons.cli.ParseException, DeploymentException {
         CommandLine cl = parseArgs(args);
+        if (cl.hasOption("h"))  {
+            HelpFormatter formater = new HelpFormatter();
+            formater.printHelp("Main", options);
+            return;
+        }
         String port = cl.getOptionValue("port", String.valueOf(DEFAULT_PORT));
         new Main(Integer.parseInt(port),cl).go();
     }
