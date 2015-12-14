@@ -70,7 +70,7 @@ public class WSClient extends WebSocketClient {
 
     public static void main(String[] args) {
         Draft d = new Draft_17();
-        WSClient client = new WSClient(URI.create("ws://localhost:8887/"), d);
+        WSClient client = new WSClient(URI.create("ws://localhost:8887/websocket/lwes"), d);
         client.connect();
         while (true) {
             try {

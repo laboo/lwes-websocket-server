@@ -6,7 +6,7 @@ compileJava {
     targetCompatibility = 1.7
 }
 
-version = '0.2.0'
+version = '0.3.0'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.4'
@@ -53,6 +53,7 @@ shadowJar {
     dependsOn("test")
     baseName = 'lwes-websocket-server'
     destinationDir = file("$buildDir/lib")
+    from sourceSets.main.allSource
     manifest {
         attributes (
                 'Implementation-Title': 'LWES WebSocket Server',

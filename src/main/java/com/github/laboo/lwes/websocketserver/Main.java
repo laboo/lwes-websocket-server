@@ -35,12 +35,12 @@ public class Main {
     private static Options options;
 
     public Main(int port) {
-        System.out.println("help");
         this.port = port;
-        // TODO wtf is this map???
-        this.server = new Server("localhost", port, "/", new HashMap<String, Object>(),
-                LwesWebSocketEndpoint.class);
-        System.out.println("created");
+        this.server = new Server("localhost",
+				 port,
+				 "/websocket",
+				 new HashMap<String, Object>(), // TODO wtf is this map for???
+				 LwesWebSocketEndpoint.class);
     }
 
     public Main(int port, CommandLine cl) {
@@ -49,7 +49,6 @@ public class Main {
     }
 
     public void start() throws DeploymentException {
-        System.out.println("starting");
         this.server.start();
     }
 

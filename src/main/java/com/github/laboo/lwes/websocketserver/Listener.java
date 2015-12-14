@@ -119,6 +119,7 @@ public class Listener implements EventHandler{
     }
 
     public void destroy() {
+        listener.removeHandler(this);
         listener.shutdown();
     }
 }

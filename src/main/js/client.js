@@ -51,5 +51,6 @@ client.on('connect', function(connection) {
     connection.sendUTF(JSON.stringify(config));
 });
 
-client.connect('ws://127.0.0.1:8887/');
+//client.connect('ws://127.0.0.1:8887/websocket/lwes');
+client.connect('ws://10.1.79.179:8887/websocket/lwes');
 

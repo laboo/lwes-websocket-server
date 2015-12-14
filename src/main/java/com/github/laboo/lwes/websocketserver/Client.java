@@ -62,16 +62,16 @@ public class Client {
                     results.clear();
                     session.getBasicRemote().sendText(data);
                 } catch (Exception e) {
-                    // All exceptions are fatal
+                    // All exceptions are fatal, we typically end with an IllegalStateException
+		    // so we don't log that one.
                     if (!(e instanceof IllegalStateException)) {
-                        // TODO is there a similar exception in Tyrus?
                         log.warn("client thread closing conn: " + e);
                         try {
                             this.session.close();
                         } catch (IOException ioe) {
                             log.warn("Exception closing session, " + ioe);
                         }
-                    }
+		    }
                     return;
                 }
             }

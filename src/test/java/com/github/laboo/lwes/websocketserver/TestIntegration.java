@@ -17,10 +17,10 @@ import java.util.Map;
 /**
  * Created by mlibucha on 6/11/15.
  *
- * These tests require that a server be running on localhost:8887
+ * These tests start a server on localhost:8887, so if that port is in use, these tests will fail
  */
 public class TestIntegration {
-    private static URI uri = URI.create("http://localhost:8887");
+    private static URI uri = URI.create("http://localhost:8887/websocket/lwes");
     private static Draft d = new Draft_17();
     private static Main main;
 

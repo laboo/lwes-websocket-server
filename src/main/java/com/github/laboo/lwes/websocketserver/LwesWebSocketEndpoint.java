@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-@ServerEndpoint(value = "/") // TODO should really be something other than just /
+@ServerEndpoint(value = "/lwes") // TODO should really be something other than just /
 public class LwesWebSocketEndpoint {
     private static Logger log = Log.getLogger();
     private static Map<Session,Client> sessionToClientMap = new ConcurrentHashMap<>();
@@ -105,7 +105,9 @@ public class LwesWebSocketEndpoint {
         String channel = client.getConfig().getChannel();
 
         clientToChannelMap.remove(client);
+
         Listener l = channelToListenerMap.get(channel);
+
         if (l != null) {
             boolean destroy = true;
             for (String ch : clientToChannelMap.values()) {
@@ -116,7 +118,7 @@ public class LwesWebSocketEndpoint {
             }
             if (destroy) {
                 l = channelToListenerMap.remove(channel);
-                l.destroy();;
+                l.destroy();
             }
         }
         try {
