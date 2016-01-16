@@ -6,7 +6,7 @@ compileJava {
     targetCompatibility = 1.7
 }
 
-version = '0.3.0'
+version = '0.3.1'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.4'
@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'org.lwes:lwes-java:1.4.0'
+    testCompile 'junit:junit:4.11'
+    compile files('lib/lwes-java-2.2.0.jar')
     compile 'org.glassfish.tyrus:tyrus-server:1.11'
     compile 'org.glassfish.tyrus:tyrus-container-grizzly-server:1.11'
     compile 'org.glassfish.grizzly:grizzly-websockets-server:2.3.21' // Why do I need this?
@@ -33,6 +33,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.3'
     compile 'org.antlr:stringtemplate:3.2'
     compile 'ch.qos.logback:logback-classic:1.1.3'
+    runtime 'commons-logging:commons-logging:1.2'
 }
 
 test {
