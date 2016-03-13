@@ -7,6 +7,7 @@ import org.lwes.listener.EventHandler;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import org.pcollections.*;
 
 /**
  * Created by mlibucha on 5/10/15.
@@ -56,11 +57,11 @@ public class Listener implements EventHandler{
     public static void handleEvent(org.lwes.Event event, String channel) {
         try {
             if (event != null) {
-                Map<String, Set<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
+                PMap<String, PSet<ClientConfig>> requestMap = ConfigMap.getRequestMap(); // global map for all configs
                 String name = event.getEventName();
                 String key = channel + name;
-                Set<ClientConfig> configSet = requestMap.get(key); // Configs listening for this type of event
-                Set<ClientConfig> allConfigSet = requestMap.get(channel); // Configs listening on all events types
+                PSet<ClientConfig> configSet = requestMap.get(key); // Configs listening for this type of event
+                PSet<ClientConfig> allConfigSet = requestMap.get(channel); // Configs listening on all events types
 
                 if (configSet != null) {
                     handleConfigSet(configSet, null, event, name);
@@ -74,8 +75,8 @@ public class Listener implements EventHandler{
         }
     }
 
-    private static void handleConfigSet(Set<ClientConfig> configSet,
-                                        Set<ClientConfig> excludedConfigSet,
+    private static void handleConfigSet(PSet<ClientConfig> configSet,
+                                        PSet<ClientConfig> excludedConfigSet,
                                         org.lwes.Event event,
                                         String name) {
         top: for (ClientConfig config : configSet) {

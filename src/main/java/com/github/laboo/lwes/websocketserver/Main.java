@@ -130,7 +130,7 @@ public class Main {
         try {
             if (cl != null && cl.hasOption("e")) {
                 emitter = new MulticastEventEmitter();
-                emitter.setESFFilePath("/path/to/esf/file");
+                //emitter.setESFFilePath("/path/to/esf/file");
                 emitter.setMulticastAddress(InetAddress.getByName("224.0.0.69"));
                 emitter.setMulticastPort(9191);
                 emitter.initialize();

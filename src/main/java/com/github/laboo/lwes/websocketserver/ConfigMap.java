@@ -1,7 +1,7 @@
 package com.github.laboo.lwes.websocketserver;
 
 import ch.qos.logback.classic.Logger;
-
+import org.pcollections.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,24 +12,20 @@ public enum ConfigMap {
     INSTANCE;
 
     private static Logger log = Log.getLogger();
-    private static Map<String, Set<ClientConfig>> requestMap;
+    private static PMap<String, PSet<ClientConfig>> requestMap;
 
     static {
-        requestMap = Collections.unmodifiableMap(new HashMap<String,Set<ClientConfig>>());
+        requestMap = HashTreePMap.empty();
     }
 
-    synchronized private static void swapIn(Map<String,Set<ClientConfig>> newMap) {
-        requestMap = Collections.unmodifiableMap(newMap);
-    }
-
-    public static Map<String, Set<ClientConfig>> getRequestMap() {
+    public static PMap<String, PSet<ClientConfig>> getRequestMap() {
         return requestMap;
     }
 
-    public synchronized static void print() {
+    public static synchronized void print() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n---------------------\n");
-        for (Map.Entry<String, Set<ClientConfig>> entry : requestMap.entrySet()) {
+        for (Map.Entry<String, PSet<ClientConfig>> entry : requestMap.entrySet()) {
             sb.append(entry.getKey() + " => [");
             for (ClientConfig cc : entry.getValue()) {
                 try {
@@ -46,61 +42,40 @@ public enum ConfigMap {
         log.debug(sb.toString());
     }
 
-    public synchronized static int sizeOfRequestMap() {
+    public static int sizeOfRequestMap() {
         return requestMap.size();
     }
 
-    public synchronized static int numConfigs(String key) {
-        Set<ClientConfig> set = requestMap.get(key);
-        if (set == null) {
-            return 0;
-        }
-        return set.size();
+    public static int numConfigs(String key) {
+	PSet<ClientConfig> set = requestMap.get(key);
+        return (set != null) ? set.size() : 0;
     }
 
-    public synchronized static ClientConfig addClientConfig(ClientConfig clientConfig) {
-        ClientConfig outConfig = clientConfig;
-        Map<String,Set<ClientConfig>> newRequestMap = new HashMap<>();
-        // Loop thru the existing map and make a copy of it.
-        for (Map.Entry<String,Set<ClientConfig>> entry : requestMap.entrySet()) {
-            String key = entry.getKey();
-            Set<ClientConfig> oldSet = entry.getValue();
-            Set<ClientConfig> newSet = new HashSet<ClientConfig>();
-            boolean contains = oldSet.contains(clientConfig);
-            for (ClientConfig cc : oldSet) {
-                newSet.add(cc);
-                // If we've already got an "equals" client config, we don't want to replace it
-                // with the new one. We want to leave the old one in place, and later the connection
-                // for the new client config will get added to the old client config.
-                if (contains || cc.equals(clientConfig)) {
-                    if (cc.equals(clientConfig)) {
-                        outConfig = cc;
-                    }
-                    continue;
-                }
-                for (Map.Entry<String,List<String>> entry2 : clientConfig.getRequests().entrySet()) {
-                    String requestKey = clientConfig.getChannel() + entry2.getKey();
-                    if (key.equals(requestKey)) {
-                        newSet.add(clientConfig);
-                    }
-                }
-            }
-            newRequestMap.put(key, Collections.unmodifiableSet(newSet));
-        }
-
-        // We also need to look through the entries in the ConfigClient because they might
-        // contain requests for a new name we didn't pick up in the loop above for existing names.
-        for (String name: clientConfig.getRequests().keySet()) {
+    public static synchronized ClientConfig addClientConfig(ClientConfig clientConfig) {
+	ClientConfig out = clientConfig;
+	for (String name: clientConfig.getRequests().keySet()) {
             String requestKey = clientConfig.getChannel() + name;
-            if (newRequestMap.get(requestKey) == null) {
-                Set<ClientConfig> newSet = new HashSet<ClientConfig>();
-                newSet.add(clientConfig);
-                newRequestMap.put(requestKey, Collections.unmodifiableSet(newSet));
-            }
+	    PSet<ClientConfig> existing = requestMap.get(requestKey);
+            if (existing == null) {
+                PSet<ClientConfig> newSet = HashTreePSet.empty();
+                newSet = newSet.plus(clientConfig);
+                requestMap = requestMap.plus(requestKey, newSet);
+            } else {
+		for (ClientConfig c : existing) {
+		    if (c.equals(clientConfig)) {
+			// If we've already got an "equals" client config, we don't want to replace it
+			// with the new one. We want to leave the old one in place, and later the connection
+			// for the new client config will get added to the old client config.
+			out = c;
+			continue;
+		    } else {
+			existing = existing.plus(clientConfig);
+			requestMap = requestMap.plus(requestKey, existing);
+		    }
+		}
+	    }
         }
-
-        swapIn(newRequestMap);
-        return outConfig;
+	return out;
     }
 
     public synchronized static void removeClientConfig(ClientConfig clientConfig) {
@@ -108,22 +83,17 @@ public enum ConfigMap {
             return;
         }
         Map<String,Set<ClientConfig>> newRequestMap = new HashMap<>();
-        for (Map.Entry<String,Set<ClientConfig>> entry : requestMap.entrySet()) {
-            String key = entry.getKey();
-            Set<ClientConfig> oldSet = entry.getValue();
-            Set<ClientConfig> newSet = new HashSet<ClientConfig>();
-            for (ClientConfig cc : oldSet) {
+        for (Map.Entry<String,PSet<ClientConfig>> entry : requestMap.entrySet()) {
+	    PSet<ClientConfig> set = entry.getValue();
+            for (ClientConfig cc : set) {
                 if (cc.equals(clientConfig)) {
-                    continue; // this removes it by not copying it into our new copy of the set
+		    set = set.minus(cc);
                 }
-                newSet.add(cc);
             }
-            if (newSet.isEmpty()) {
-                continue; // this removes the requestMap(name) entry because it only had the one cc
+            if (set.isEmpty()) {
+		requestMap = requestMap.minus(entry.getKey());
             }
-            newRequestMap.put(key, newSet);
         }
-        swapIn(newRequestMap);
     }
 
 }
