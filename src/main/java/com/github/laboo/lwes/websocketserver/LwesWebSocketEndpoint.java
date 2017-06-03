@@ -81,7 +81,6 @@ public class LwesWebSocketEndpoint {
     @OnError
     public void onError(Session session, Throwable t) {
         log.warn("Got error.", t);
-        close(session); // TODO research
     }
 
     @OnClose
@@ -119,11 +118,6 @@ public class LwesWebSocketEndpoint {
                 l = channelToListenerMap.remove(channel);
                 l.destroy();
             }
-        }
-        try {
-            session.close();
-        } catch (IOException ioe) {
-            log.warn("Error closing websocket session at session end", ioe);
         }
     }
 
