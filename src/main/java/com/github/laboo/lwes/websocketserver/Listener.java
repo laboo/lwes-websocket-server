@@ -71,7 +71,7 @@ public class Listener implements EventHandler{
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception handling event.", e);
         }
     }
 

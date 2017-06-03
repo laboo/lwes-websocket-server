@@ -84,15 +84,17 @@ public enum ConfigMap {
         }
         for (Map.Entry<String,PSet<ClientConfig>> entry : requestMap.entrySet()) {
             PSet<ClientConfig> set = entry.getValue();
-            for (ClientConfig cc : set) {
+            PSet<ClientConfig> newSet = HashTreePSet.empty();
+            newSet.plusAll(set);
+            for (ClientConfig cc : newSet) {
                 if (cc.equals(clientConfig)) {
-                    set = set.minus(cc);
+                    newSet = newSet.minus(cc);
                 }
             }
-            if (set.isEmpty()) {
+            if (newSet.isEmpty()) {
                 requestMap = requestMap.minus(entry.getKey());
             } else {
-                entry.setValue(set);
+                requestMap = requestMap.plus(entry.getKey(), newSet);
             }
         }
     }

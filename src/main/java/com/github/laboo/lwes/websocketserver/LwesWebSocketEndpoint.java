@@ -72,8 +72,7 @@ public class LwesWebSocketEndpoint {
             try {
                 session.getBasicRemote().sendText(error);
             } catch (IOException e) {
-                log.warn("Error sending on websocket session at session start");
-                e.printStackTrace();
+                log.warn("Error sending on websocket session at session start", e);
             }
         }
         ConfigMap.print();
@@ -81,7 +80,7 @@ public class LwesWebSocketEndpoint {
 
     @OnError
     public void onError(Session session, Throwable t) {
-        t.printStackTrace();
+        log.warn("Got error.", t);
         close(session); // TODO research
     }
 
@@ -124,8 +123,7 @@ public class LwesWebSocketEndpoint {
         try {
             session.close();
         } catch (IOException ioe) {
-            log.warn("Error closing websocket session at session end");
-            ioe.printStackTrace();
+            log.warn("Error closing websocket session at session end", ioe);
         }
     }
 
