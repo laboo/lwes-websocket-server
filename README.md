@@ -2,6 +2,23 @@
 
 A server that listens on UDP mulitcast channels (224.0.0.x:port) and serves up any [LWES](https://github.com/lwes/) events emitted on those channels to clients as JSON objects over [WebSockets](https://tools.ietf.org/html/rfc6455).
 
+### Quick Start
+
+```
+> git clone https://github.com/laboo/lwes-websocket-server.git
+> cd lwes-websocket-server
+> ./gradlew clean shadowJar
+> java -jar build/lib/lwes-websocket-server-0.3.2-all.jar -e -l DEBUG
+```
+
+That will start the server on localhost:8887 with events being emitted every second. You can see those events by running either of the clients in another terminal window. Here's how to start the Java client.
+
+```
+> java -cp build/lib/lwes-websocket-server-0.3.2-all.jar com.github.laboo.lwes.client/WSClient
+```
+
+### Description
+
 LWES events are simple messages consisting of a name and a map of attribute/value pairs. They are typically used as an alternative to log files for tracking events.
 
 For example, let's say you have web site and want to track each search, click and ad. As these events occur, instead of writing each out to a log file, which is slow, you multicast the events on the network. Then, you set up some separate single-purpose servers to listen on the network, capture those events coming from all servers, and write them out to log files.
