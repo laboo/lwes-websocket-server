@@ -21,7 +21,7 @@ That will start the server on localhost:8887 with events being emitted every sec
 
 LWES events are simple messages consisting of a name and a map of attribute/value pairs. They are typically used as an alternative to log files for tracking events.
 
-For example, let's say you have web site and want to track each search, click and ad. As these events occur, instead of writing each out to a log file, which is slow, you multicast the events on the network. Then, you set up some separate single-purpose servers to listen on the network, capture those events coming from all servers, and write them out to log files.
+For example, let's say you have web site and want to track each search, click and ad. As these events occur, instead of writing each out to a log file, which is slow, you multicast the events on the network. Then, you set up some separate single-purpose servers to listen on the network, capture those events coming from all servers, and write them out to log files in that central location.
 
 What this project does is listen for those same events on the network, but instead of writing them out to disk, it serves them up over web sockets, through filters if desired.
 
@@ -38,14 +38,14 @@ gradle.bat shadowJar
 ### Running (assumes you have JRE 1.7+ installed)
 
 ```
-java -jar build/lib/lwes-websocket-server-1.0-all.jar -e
+java -jar build/lib/lwes-websocket-server-0.3.2-all.jar -e
 ```
 The ```-e``` flag emits events, 1 per second, for testing purposes. In production, ```-e``` should not be used.
 
 By default, the server listens on port 8887. Change the port with a -p parameter. For example.
 
 ```
-java -jar build/lib/lwes-websocket-server-1.0-all.jar -e -p 8888
+java -jar build/lib/lwes-websocket-server-0.3.2-all.jar -e -p 8888
 ```
 
 ### Connecting with a WebSocket client
