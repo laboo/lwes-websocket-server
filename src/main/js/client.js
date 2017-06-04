@@ -22,13 +22,13 @@ var client = new WebSocketClient();
 
 var config =
     {
-	"ip": "224.0.0.69",
-	"port": 9191,
-	"batchSize": 5,
-	"maxSecs": 60,
-	"requests": {"Click" : ["url","count"],
-		     "Search" : ["term", "lat", "lon","count"],
-		     "Ad" : ["text", "count"] }
+    "ip": "224.0.0.69",
+    "port": 9191,
+    "batchSize": 5,
+    "maxSecs": 60,
+    "requests": {"Click" : ["url","count"],
+             "Search" : ["term", "lat", "lon","count"],
+             "Ad" : ["text", "count"] }
     }
 
 client.on('connectFailed', function(error) {
@@ -38,19 +38,18 @@ client.on('connectFailed', function(error) {
 client.on('connect', function(connection) {
     console.log('WebSocket Client Connected');
     connection.on('error', function(error) {
-	console.log("Connection Error: " + error.toString());
+    console.log("Connection Error: " + error.toString());
     });
     connection.on('close', function() {
-	console.log('Connection Closed');
+    console.log('Connection Closed');
     });
     connection.on('message', function(message) {
-	if (message.type === 'utf8') {
-	    console.log(message.utf8Data);
-	}
+    if (message.type === 'utf8') {
+        console.log(message.utf8Data);
+    }
     });
     connection.sendUTF(JSON.stringify(config));
 });
 
-//client.connect('ws://127.0.0.1:8887/websocket/lwes');
-client.connect('ws://10.1.79.179:8887/websocket/lwes');
+client.connect('ws://127.0.0.1:8887/websocket/lwes');
 
