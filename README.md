@@ -103,13 +103,7 @@ Here's the error response we get:
 {
   "type":"error",
   "msg":"port must be specified in {\"ip\":\"224.0.0.69\",\"batchSize\":5,\"maxSecs\":60,\"requests\":{\"Click\":[\"url\",\"count\"],\"Search\":[\"term\",\"lat\",\"lon\",\"count\"],\"Ad\":[\"text\",\"count\"]}}",
-   "data":[]
+  "data":[]
 }
 ```
 More [on the wiki](https://github.com/laboo/lwes-websocket-server/wiki/Client-Usage)
-
-
-
-
-
-
