@@ -85,10 +85,11 @@ public enum ConfigMap {
         for (Map.Entry<String,PSet<ClientConfig>> entry : requestMap.entrySet()) {
             PSet<ClientConfig> set = entry.getValue();
             PSet<ClientConfig> newSet = HashTreePSet.empty();
-            newSet.plusAll(set);
-            for (ClientConfig cc : newSet) {
+            newSet = newSet.plusAll(set);
+            for (ClientConfig cc : set) {
                 if (cc.equals(clientConfig)) {
                     newSet = newSet.minus(cc);
+                    break;
                 }
             }
             if (newSet.isEmpty()) {
